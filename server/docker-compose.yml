@@ -1,0 +1,24 @@
+version: '3.3'
+
+services:
+  kf-base:
+    image: kf-base
+    build: .
+    ports:
+      - 3000:3000
+    volumes:
+      - type: volume,
+        source: .
+        target: /usr/src/app
+    depends_on: [mongo,redis]
+    environment: 
+      - NODE_DEBUG="redis"
+      - NODE_ENV="development"
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes: 
+      - /var/lib/mongodb:/var/lib/mongodb
+  redis:
+    image: redis
