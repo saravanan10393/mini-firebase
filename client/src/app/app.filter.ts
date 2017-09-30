@@ -10,7 +10,7 @@ export class ValuesPipe implements PipeTransform {
         if(!src)
             return values;
         for(let key in src){
-            values.push(src[key].name);
+            values.push(Object.assign({id : key},src[key]));
         }
         return values;
     }

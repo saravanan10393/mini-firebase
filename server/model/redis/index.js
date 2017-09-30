@@ -6,7 +6,7 @@ bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
 const client = redis.createClient({
-   url:"redis://redis:6379/1"
+   url:"redis://localhost:6379/1"
 });
 
 client.on('connect', () => {

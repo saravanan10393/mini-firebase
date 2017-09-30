@@ -1,7 +1,9 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, NgZone, Inject } from '@angular/core';
 import {default as kfClient} from './kfbase.client';
-import { DataService } from './app.service';
+import { IDataStore } from './IDataStore';
 import * as _ from 'underscore';
+
+declare const firebase;
 
 @Component({
   selector: 'app-root',
@@ -10,31 +12,46 @@ import * as _ from 'underscore';
 })
 
 export class AppComponent {
-  title = 'app';
-  tasks = {}
+  taskname = 'app';
+  taskList = {}
 
-  constructor(private service: DataService ,private cdr : NgZone){
-    setTimeout(() => {
-      service.getTasks().subscribe((tasks) => {
-        this.tasks = tasks;
+  constructor(@Inject('IDataStore')private service: IDataStore, private cdr : NgZone){
+    //setTimeout(() => {
+      this.service.getTasks().subscribe((tasks) => {
+        console.log(this.taskList == tasks)
+        this.taskList = tasks
       })
-    },2000);
+    //},2000);
   }
 
   addTask(name){
-    kfClient.ref('tasks').push().set({
-        name 
+    this.service.addTask({
+      name, 
+      completed:false,
     });
   }
 
-  deleteTask(name){
-    let taskId = null;
-    for(let key in this.tasks){
-      if(this.tasks[key].name == name){
-        taskId = key;
-      }
-    }
-    kfClient.ref(`tasks/${taskId}`).delete();
+  updateTask(task){
+    this.service.updateTask(task);
+  }
+
+  deleteTask(taskId){
+    this.service.deleteTask(taskId)
+  }
+
+  loginWithGoogle(){
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then((data) => {
+      console.log('loging success ',data)
+    }, (err) => {
+      console.log('Fail throw erred to login', err)
+    }).then((user) =>{
+      console.log('logged in user ',user);
+    }).catch((err) => console.error(err))
+  }
+
+  trackByFn(index,item){
+    return index;
   }
 
 }

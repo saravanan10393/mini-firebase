@@ -13,7 +13,7 @@ module.exports = {
             return app;
         }, (err) => {
             console.log('err ', err);
-            return {error: true, message: "Failed to create application"};
+            return Promise.reject({error: true, message: "Failed to create application"});
         });
     },
 
@@ -23,7 +23,7 @@ module.exports = {
                 return app;
             }, (err) => {
                 console.log('Failed get app by id',err)
-                return err;
+                return Promise.reject(err);
             });
     },
 
@@ -32,7 +32,7 @@ module.exports = {
             .then((apps) => {
                 return apps
             }, (err) => {
-                Promise.reject(err);
+                return Promise.reject(err);
             });
     },
 
@@ -54,7 +54,7 @@ module.exports = {
     },
 
     update: function(appId, data){
-        AppModel.findByIdAndUpdate(appId, {$set:{data : data}},{new : true}).exec()
+       return  AppModel.findByIdAndUpdate(appId, {$set:{data : data}},{new : true}).exec()
             .then(app => {
                 console.log('updated the app ',app);
                 return app;
@@ -62,5 +62,11 @@ module.exports = {
                 console.log(err);
                 return Promise.reject({error: true, message: "Failed update rename the app"})
             });     
+    },
+
+    delete(appId){
+        return AppModel.remove({_id:appId})
+            .exec()
+            .then((data) => data, err => Promise.reject(err))
     }
 };

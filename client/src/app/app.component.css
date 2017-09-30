@@ -1,0 +1,36 @@
+.todo-card{
+    margin: 200px auto;
+    width: 500px;
+}
+
+.task-form{
+    min-height: 60px;
+    border-bottom: 1px solid #ddd;
+}
+
+.task-list{
+    height: 300px;
+    overflow-y: auto;
+}
+
+md-list-item{
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+md-list-item:hover{
+    background: #eaeaea;
+}
+
+md-list-item span{
+    margin-left: 15px;
+}
+
+md-list-item button{
+    position: absolute;
+    right: 0px;
+}
+
+md-list-item:after{
+    clear: both;
+}

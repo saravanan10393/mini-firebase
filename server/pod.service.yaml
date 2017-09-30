@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name:  mini-base-main
+spec:
+  selector:
+    app:  mini-base
+  type:  LoadBalancer
+  ports:
+  - name:  main
+    port:  3000
+    targetPort:  kf-base-port

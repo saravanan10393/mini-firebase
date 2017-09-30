@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-mongoose.connect("mongodb://mongo:27017/kfbase", function(err){
+mongoose.connect("mongodb://localhost:27017/kfbase", function(err){
     if(err)
         console.log("Failed to connect to mongo db ",err);
     else

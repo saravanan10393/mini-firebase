@@ -3,7 +3,6 @@ import * as DeepExtend from 'deep-extend';
 
 const dataFormat = {};
 const hostUrl = "http://localhost:3000";
-var socket = null;
 
 // utils methods
 /**
@@ -67,7 +66,7 @@ function constructionObjFromPath(paths : Array<string>, value : any){
  */
 function compactObject(obj) {
     for (var k in obj) {
-        if (obj.hasOwnProperty(k) && !obj[k]) {
+        if (obj.hasOwnProperty(k) && (obj[k] == null || typeof obj[k] == "undefined")) {
             delete obj[k];
         }
         if(typeof obj[k] == "object"){
@@ -108,12 +107,17 @@ class EventEmitter {
     }
 }
 
-const eventEmitter = new EventEmitter();
-
-
 class Socket {
     private socket: any;
-    constructor(private path) {
+    constructor(private path, private eventEmitter) {
+        var so = io(`${hostUrl}`,{
+            transports: ['websocket'],
+            forceNew: true,
+            query:{
+                appId: path
+            }
+        });
+        
         this.socket = io(`${hostUrl}/${path}`, {
             transports: ['websocket']
         });
@@ -136,8 +140,10 @@ class Socket {
         paths.reduce((combinedPath, currentPath) => {
             var obj = getValueFromObjectForPath(combinedPath.split('/'))
             console.log('retrived value from path ',combinedPath ,obj)
-            if(obj)
-                eventEmitter.emit(`${combinedPath}`, obj)
+            if(obj !== null || typeof obj != 'undefined'){
+                obj = (typeof obj == "object" && !Array.isArray(obj)) ? Object.assign({}, obj) : obj;
+                this.eventEmitter.emit(`${combinedPath}`, obj)
+            }
             if(combinedPath == currentPath){
                 return combinedPath
             }else{
@@ -149,7 +155,7 @@ class Socket {
 
 
 class Query {
-    constructor(private path: string) {}
+    constructor(private path: string, private eventEmitter:EventEmitter, private socket:Socket) {}
 
     on(name, callback) {
         var req = {
@@ -157,9 +163,9 @@ class Query {
             path: this.path
         }
 
-        eventEmitter.on(`${this.path}`, callback);
+        this.eventEmitter.on(`${this.path}`, callback);
 
-        socket.send(req, (data) => {
+        this.socket.send(req, (data) => {
             console.log('ack data ',data);            
         });
     }
@@ -177,7 +183,7 @@ class Query {
             path: this.path
         }
 
-        eventEmitter.off(`${this.path}`)
+        this.eventEmitter.off(`${this.path}`)
     }
 
     set(data) {
@@ -186,14 +192,14 @@ class Query {
             path: this.path,
             data: data
         }
-        socket.send(req, (data) => {
+        this.socket.send(req, (data) => {
             console.log('set ack data ',data);            
         });
     }
 
     push(){
         let key = this.path+"/"+new Date().getTime();
-        return new Query(key);
+        return new Query(key, this.eventEmitter, this.socket);
     }
 
     delete(){
@@ -202,7 +208,7 @@ class Query {
             path: this.path,
             data:null
         }
-        socket.send(req, (data) => {
+        this.socket.send(req, (data) => {
             console.log('delete ack data ',data);            
         });
     }
@@ -215,23 +221,25 @@ class Kfclient {
     private config = {
         appId: "",
     }
-    constructor() {
+    constructor(private eventEmitter:EventEmitter) {
         this.initilized = false;
     }
 
     init(config) {
-        fetch(`${this.hostUrl}/socket/init`, {
-            method: 'POST',
-            headers: new Headers({
-                'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({ namespace: config.appId })
-        }).then((data) => {
-            console.log(`${data}`);
-            this.initilized = true;
-            //this.initSocket(config.appId);
-            socket = new Socket(config.appId);
-        }, (err) => { console.error('failed to initialize socket') })
+        this.initilized = true;
+        // fetch(`${this.hostUrl}/socket/init`, {
+        //     method: 'POST',
+        //     headers: new Headers({
+        //         'Content-Type': 'application/json'
+        //     }),
+        //     body: JSON.stringify({ namespace: config.appId })
+        // }).then((data) => {
+        //     console.log(`${data}`);
+        //     this.initilized = true;
+        //     //this.initSocket(config.appId);
+        //     socket = new Socket(config.appId);
+        // }, (err) => { console.error('failed to initialize socket') })
+        this.socket = new Socket(config.appId, this.eventEmitter);
     }
 
     private initSocket(appId) {
@@ -252,8 +260,8 @@ class Kfclient {
     }
 
     ref(path: string) {
-        return new Query(path);
+        return new Query(path, this.eventEmitter, this.socket);
     }
 }
 
-export default new Kfclient();  
+export default new Kfclient(new EventEmitter());  

@@ -1,0 +1,56 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mini-base
+  labels:
+    name:  mini-base
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name:  kf-base-server
+    spec:
+      restartPolicy: Always
+      containers:
+      - image: saravanan10393/mini-base
+        imagePullPolicy: Always
+        name:  kf-base-server
+        ports: 
+        - containerPort:  3000
+          name:  kf-base-port
+        
+      
+      - image: redis
+        imagePullPolicy: Always
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: kf-redis-port
+        
+      - image: mongo
+        imagePullPolicy: Always
+        name: mongo
+        ports:
+        - containerPort: 27017
+          name: kf-mongo-port
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name:  mini-base-main
+spec:
+  selector:
+    app:  kf-base-server
+  type:  NodePort
+  ports:
+  - name:  main
+    port:  3000
+    targetPort:  kf-base-port

@@ -16,7 +16,7 @@ module.exports = {
                     throw new Error("User already exist");
                 return undefined;
             },
-            (err) => {console.log(err); throw new Error("Failed to create user")}
+            (err) => {console.log(err); Promise.reject(err)}
         )
         .then(
             (data) => {
@@ -24,7 +24,7 @@ module.exports = {
                 return user.save();
             },
             (err) => {
-                throw err;
+                return Promise.reject(err);
             }
         );
     },

@@ -1,8 +1,23 @@
-<input type="text" name="appName" id="" placeholder="task name" #taskName>
-
-<button type="button" (click)="addTask(taskName.value)">Add task</button>
-
-<h3>All Tasks</h3>
-<ul class="task-list">
-    <li *ngFor="let task of tasks | values">{{task}} <button type="button" (click)="deleteTask(task)" >delete</button></li>
-</ul>
+<md-card class="todo-card">
+    <md-card-title>Task Manager</md-card-title>
+    <md-card-content>
+        <div class="task-form">
+            <md-input-container>
+                <input type="text" mdInput [(ngModel)]="taskname" required placeholder="Task Name">
+            </md-input-container>
+            <button md-button color="primary" (click)="taskname ?addTask(taskname):'';taskname = ''">Add</button>
+            <button md-button  (click)="loginWithGoogle()">LoginWithgoogle</button>
+        </div>
+        <div class="task-list">
+            <md-list>
+                <md-list-item *ngFor="let task of taskList | values; trackBy trackByFn" (click)="task.completed = !task.completed;updateTask(task)">
+                    <md-checkbox [checked]="task.completed"></md-checkbox>
+                    <span class="taskname">{{task.name}}</span>
+                    <button md-icon-button (click)="deleteTask(task.id); $event.stopPropagation()">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </md-list-item>
+            </md-list>
+        </div>
+    </md-card-content>
+</md-card>
